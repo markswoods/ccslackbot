@@ -63,7 +63,7 @@ This bot demonstrates many of the core features of Botkit:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-// require('dotenv').load();
+// Let's add before/after functions to help debug
 
 if (!process.env.SLACK_TOKEN) {
     console.log('Error: Specify SLACK_TOKEN in environment');
@@ -71,15 +71,6 @@ if (!process.env.SLACK_TOKEN) {
 }
 
 var Botkit = require('./lib/Botkit.js');
-var os = require('os');
-
-var controller = Botkit.slackbot({
-    debug: true,
-});
-
-var bot = controller.spawn({
-    token: process.env.SLACK_TOKEN
-}).startRTM();
 
 var watsonMiddleware = require('botkit-middleware-watson')({
   username: process.env.CONVERSATION_USERNAME,
@@ -89,9 +80,21 @@ var watsonMiddleware = require('botkit-middleware-watson')({
   minimum_confidence: 0.75, // (Optional) Default is 0.75
 });
 
-controller.middleware.receive.use(watsonMiddleware.receive);
-bot.startRTM();
+var controller = Botkit.slackbot({
+    debug: true,
+});
 
+//var bot = controller.spawn({
+//    token: process.env.SLACK_TOKEN
+//}).startRTM();
+var bot = controller.spawn({
+    token: process.env.SLACK_TOKEN
+});
+
+controller.middleware.receive.use(watsonMiddleware.receive);
 controller.hears(['.*'], ['direct_message', 'direct_mention', 'mention'], function(bot, message) {
     bot.reply(message, message.watsonData.output.text.join('\n'));
 });
+
+bot.startRTM();
+
